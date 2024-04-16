@@ -35,14 +35,19 @@ public class MEM {
         // First give the mapper a chance to claim this memory area.
         if (!nesCart.mapper.cpuWrite(addr, val)) {
 
-            if (addr > 0 && addr <= 0x1FFF) {
+            if (addr >= 0 && addr <= 0x1FFF) {
                 // 2K of internal RAM, mirrored 4 times in 0x0800 sized pages.
                 RAM[addr & 0x07FF] = val;
 
             } else if (addr <= 0x3FFF) {
                 // PPU - 8 Bytes mirrored.
-                System.out.println("Write to PPU");
                 cpu.ppu.cpuWrite(addr & 0b0000_0111, val);
+            } else if (addr == 0x4016) {
+                // Controllers - copy current state to snapshot.
+                if ((val&1)>0) {
+                    rig.io.controllerSnapshotState[0] = rig.io.controllerState[0];
+                    rig.io.controllerSnapshotState[1] = rig.io.controllerState[1];
+                }
             }
         }
 
@@ -63,12 +68,20 @@ public class MEM {
         if (!nesCart.mapper.cpuRead(addr, outValue)) {
 
 
-            if (addr > 0 && addr < 0x2000) {
+            if (addr < 0x2000) {
                 // 2K of internal RAM, mirrored 4 times in 0x0800 sized pages.
                 outValue.value = RAM[addr & 0x07FF];
             } else if (addr <= 0x3FFF) {
                 // PPU - 8 Bytes mirrored.
                 outValue.value = cpu.ppu.cpuRead(addr & 0b0000_0111);
+            } else if (addr == 0x4016) {
+                // Read controller 1
+                outValue.value = (rig.io.controllerSnapshotState[0] & 0x80) > 0 ? 1:0;
+                rig.io.controllerSnapshotState[0] <<= 1;
+            } else if (addr == 0x4017) {
+                // Read controller 1
+                outValue.value = (rig.io.controllerSnapshotState[0] & 0x80) > 0 ? 1:0;
+                rig.io.controllerSnapshotState[0] <<= 1;
             }
 
 //            // Most basic cartridge support...

@@ -57,14 +57,13 @@ public class Rig {
 
             for (int ii = 0; ii < instructionsPerScanLine; ii++) {
 
-                if (tickCount % 5000 == 0) {
+                if (tickCount % 50 == 0) {
                     io.checkKeyboard(basicDisplay);
                 }
 
                 // Don't tick other components if unit test is active.
                 cpu.tick2();
                 ppu.tick();
-
 
                 tickCount++;
             }

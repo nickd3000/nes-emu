@@ -20,18 +20,18 @@ public class Emulator {
 
         rig.runForCycles(2000000);
 
-        Utils.printMem(rig.cpu.mem.RAM, 0x0400, 0x07FF - 0x0400); // Screen ram
-        Utils.printMem(rig.cpu.mem.RAM, 0x00, 0xff); // Zero page
-        Utils.printTextScreen(rig.cpu.mem.RAM, 0x0400);
-
     }
 
     public static String getGame() {
+//        return "mario bros.nes";
 //        return "super mario bros.nes";
-//        return "donkey kong.nes";
-        return "balloon fight.nes";
+        return "donkey kong.nes";
+//        return "balloon fight.nes";
 //        return "pac-man.nes";
 //        return "bomberman.nes";
+//        return "golf.nes";
+//        return "ice climber.nes";
+//        return "ice hockey.nes";
     }
 
 }

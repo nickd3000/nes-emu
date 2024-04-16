@@ -2,6 +2,7 @@ package com.physmo;
 
 import com.physmo.mappers.Mapper;
 import com.physmo.mappers.Mapper000;
+import com.physmo.mappers.Mapper003;
 
 public class NESCart {
 
@@ -13,6 +14,8 @@ public class NESCart {
     public String fileIdentifier;
     public int prgRomSize;
     public int chrRomSize;
+    public int prgRomChunks;
+    public int chrRomChunks;
     public int prgRomOffset;
     public int chrRomOffset;
     public int flags6;
@@ -22,6 +25,7 @@ public class NESCart {
     public int flags10;
     public int mapperNumber;
     public boolean NES2Format = false;
+    public int mirrorMode = 0; // 0 = H, 1 = V
 
     Mapper mapper;
 
@@ -36,11 +40,16 @@ public class NESCart {
         if (id==0) {
             mapper = new Mapper000();
         }
+        if (id==3) {
+            mapper = new Mapper003();
+        }
     }
 
     public void interpretHeader() {
 
         fileIdentifier = ""+(char)data[0]+(char)data[1]+(char)data[2]+(char)data[3];
+        prgRomChunks = data[4];
+        chrRomChunks = data[5];
         prgRomSize = data[4] * KB16;
         chrRomSize = data[5] * KB8;
         flags6 = data[6];
@@ -51,6 +60,10 @@ public class NESCart {
 
         prgRomOffset = 16;
         chrRomOffset = prgRomOffset+prgRomSize;
+
+        // Detect mirroring mode. 0 = H, 1 = V
+        if ((flags6&0x01)>0) mirrorMode=1;
+        else mirrorMode=0;
 
         // Detect NES2 format file.
         if ((flags7&0x0c)==0x08) NES2Format=true;

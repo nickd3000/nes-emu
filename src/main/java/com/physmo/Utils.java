@@ -239,11 +239,17 @@ buffer_delete(buff);
 	}
 
 	// TODO: replace shifts here with constants for each bit.
-	public int setBit(int val, int bit) {
+	public static int setBit(int val, int bit) {
 		return val | (1 << bit);
 	}
 
-	public int resetBit(int val, int bit) {
+	public static int resetBit(int val, int bit) {
+		return val & ~(1 << bit);
+	}
+
+	// Set a specific bit in a byte on or off.
+	public static int setBit(int val, int bit, boolean onOff) {
+		if (onOff) return val | (1 << bit);
 		return val & ~(1 << bit);
 	}
 

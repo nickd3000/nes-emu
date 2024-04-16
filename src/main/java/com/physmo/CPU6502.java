@@ -19,7 +19,7 @@ public class CPU6502 {
     private static String testPath = "/Users/nick/dev/emulatorsupportfiles/c64/tests/";
     public int firstUnimplimentedInstructionIndex = -1;
     public boolean lg = false;
-    public boolean debugOutput = true;
+    public boolean debugOutput = false;
     public boolean debugOutputIo = false;
     public int debugCallIndex = 0;
     public String stateString = "";
@@ -82,6 +82,7 @@ public class CPU6502 {
         System.out.println("Setting PC to "+Utils.toHex4(PC));
 
         FL = 0;
+        SP = 0xFD;
 
         // setFlag5();
         setFlag(FLAG_UNUSED);
@@ -490,7 +491,8 @@ public class CPU6502 {
         if (debugOutput) {
             dbgHardwareState = Debug.getHardwareSummary(this);
             dbgInstructionName = codeTableManager.codeTableMain.getInstructionName(currentInstruction);
-            dbgString = "PC:0x" + Utils.toHex4(startingPC) + "  " + dbgHardwareState + "  0x" + Utils.toHex2(currentInstruction) + " " + dbgInstructionName;
+
+            dbgString = "PC:0x" + Utils.toHex4(startingPC) + " rst:"+ppu.raster+"  " + dbgHardwareState + "  0x" + Utils.toHex2(currentInstruction) + " " + dbgInstructionName;
             addressString = "";
         }
 
@@ -505,6 +507,8 @@ public class CPU6502 {
             dbgString += "  " + addressString;
             System.out.println(dbgString);
         }
+
+        if (ppu.getNmi()) nmi();
 
         //if (startinggPC==PC) haltEmulation = true;
     }
@@ -532,13 +536,19 @@ public class CPU6502 {
         if (disableNmiAndIrq) return;
         //unsetFlag(FLAG_BREAK);
         pushWord(PC);
+
+        setFlagConditional(FLAG_BREAK, false);
+        setFlagConditional(FLAG_UNUSED, true);
+        setFlagConditional(FLAG_INTERRUPT_DISABLE, true);
+
         pushByte(FL & 0xEF);
+
         // pushFlags();
         PC = getWord(0xfffa);
         // setFlag(FLAG_INTERRUPT_DISABLE);
         cycles += 5;
 
-        System.out.println("NMI NMI NMI NMI NMI NMI NMI NMI NMI NMI NMI NMI NMI NMI NMI ");
+        //System.out.println("NMI NMI NMI NMI NMI NMI NMI NMI NMI NMI NMI NMI NMI NMI NMI ");
     }
 
 

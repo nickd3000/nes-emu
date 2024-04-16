@@ -15,6 +15,10 @@ public class IO {
     Map<Integer, Integer[]> keymap_ = new HashMap<>();
     Map<Integer, Integer> joyMap2 = new HashMap<>();
 
+    int [] controllerState = new int[2];
+    int [] controllerSnapshotState = new int[2];
+
+
     // keymap_[SDL_SCANCODE_A] = std::make_pair(1,2);
 
     int[] keyboard_matrix_ = new int[8]; // REMOVE
@@ -53,6 +57,16 @@ public class IO {
             else cpu.debugOutput = false;
             return;
         }
+
+        // Read controller.
+        controllerState[0] = Utils.setBit(controllerState[0], 7-4, bd.getKeyState()[KeyEvent.VK_UP]>0);
+        controllerState[0] = Utils.setBit(controllerState[0], 7-5, bd.getKeyState()[KeyEvent.VK_DOWN]>0);
+        controllerState[0] = Utils.setBit(controllerState[0], 7-6, bd.getKeyState()[KeyEvent.VK_LEFT]>0);
+        controllerState[0] = Utils.setBit(controllerState[0], 7-7, bd.getKeyState()[KeyEvent.VK_RIGHT]>0);
+        controllerState[0] = Utils.setBit(controllerState[0], 7-0, bd.getKeyState()[KeyEvent.VK_Z]>0); // A
+        controllerState[0] = Utils.setBit(controllerState[0], 7-1, bd.getKeyState()[KeyEvent.VK_X]>0); // B
+        controllerState[0] = Utils.setBit(controllerState[0], 7-2, bd.getKeyState()[KeyEvent.VK_A]>0); // SELECT
+        controllerState[0] = Utils.setBit(controllerState[0], 7-3, bd.getKeyState()[KeyEvent.VK_S]>0); // START
 
         bd.tickInput();
 
