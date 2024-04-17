@@ -25,10 +25,10 @@ public class Emulator {
     public static String getGame() {
 //        return "mario bros.nes";
 //        return "super mario bros.nes";
-        return "donkey kong.nes";
+//        return "donkey kong.nes";
 //        return "balloon fight.nes";
 //        return "pac-man.nes";
-//        return "bomberman.nes";
+        return "bomberman.nes";
 //        return "golf.nes";
 //        return "ice climber.nes";
 //        return "ice hockey.nes";

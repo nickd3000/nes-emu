@@ -9,6 +9,7 @@ public class PPU {
     // Internal storage
     int[][] nameTable = new int[2][1024]; // Tile Id's
     int[][] patternTable = new int[2][4096]; // Images
+    int[] paletteRam = new int[32];
 
     BasicDisplay bd;
     int PPUCTRL;
@@ -21,7 +22,9 @@ public class PPU {
     int PPUDATA;
     int OAMDMA;
 
-    Color[] tempCols = new Color[4];
+    Color[] bgPalette = new Color[4];
+    OAM[] oamTable = new OAM[64];
+
     boolean vBlankActive = false;
 
     boolean PPUSCROLLToggle = false;
@@ -37,9 +40,9 @@ public class PPU {
     boolean wRegister = false;
     int dataBuffer = 0;
     boolean nmi = false;
-boolean spriteOverflow=false;
-boolean spriteZeroHit=false;
-int oamAddress=0;
+    boolean spriteOverflow = false;
+    boolean spriteZeroHit = false;
+    int oamAddress = 0;
 
     public PPU(BasicDisplay bd, CPU6502 cpu, Rig rig) {
         this.bd = bd;
@@ -49,11 +52,14 @@ int oamAddress=0;
     }
 
     public void init() {
-        tempCols[0] = Color.BLACK;
-        tempCols[1] = Color.RED;
-        tempCols[2] = Color.BLUE;
-        tempCols[3] = Color.YELLOW;
+        bgPalette[0] = Color.BLACK;
+        bgPalette[1] = Color.RED;
+        bgPalette[2] = Color.BLUE;
+        bgPalette[3] = Color.YELLOW;
         PPUCTRL = 0b1000_0000;
+        for (int i = 0; i < 64; i++) {
+            oamTable[i] = new OAM();
+        }
     }
 
     public void tick() {
@@ -79,10 +85,11 @@ int oamAddress=0;
         if (raster == 261) {
             raster = 0;
             vBlankActive = false;
+            renderDebugOAM();
             bd.repaint();
         }
 
-        if (Math.random()<0.1) spriteZeroHit=true;
+        if (Math.random() < 0.1) spriteZeroHit = true;
 
         raster++;
         nextRasterAt += 341;
@@ -217,6 +224,13 @@ int oamAddress=0;
                     }
 
                 }
+            } else {
+                addr &= 0x1F;
+                if (addr == 0x0010) addr = 0x0000;
+                if (addr == 0x0014) addr = 0x0004;
+                if (addr == 0x0018) addr = 0x0008;
+                if (addr == 0x001C) addr = 0x000C;
+                paletteRam[addr] = val;
             }
         }
     }
@@ -259,6 +273,13 @@ int oamAddress=0;
                     }
                 }
 
+            } else {
+                addr &= 0x1F;
+                if (addr == 0x0010) addr = 0x0000;
+                if (addr == 0x0014) addr = 0x0004;
+                if (addr == 0x0018) addr = 0x0008;
+                if (addr == 0x001C) addr = 0x000C;
+                outValue.value = paletteRam[addr];
             }
 
         }
@@ -294,21 +315,23 @@ int oamAddress=0;
         int nameTableBaseAddress = getBaseNametable();//0x2000; //
         int charBaseAddress = 0x1000;
 
-        //if ((PPUCTRL&0b1000)>0) charBaseAddress = 0x1000;
+        if ((PPUCTRL & 0b1000) > 0) charBaseAddress = 0;//0x1000;
 
         int mx = bd.getMouseButtonLeft() ? bd.getMouseX() * 8 : 0;
         int my = bd.getMouseButtonLeft() ? bd.getMouseY() * 8 : 0;
 
         int scrollX = PPUSCROLL & 0xF;
         int scrollY = (PPUSCROLL >> 4) & 0xF;
-//        mx += scrollCourseX * 8;
-//        my += scrollCourseY * 8;
+//        mx -= scrollCourseX * 8;
+//        my -= scrollCourseY * 8;
 
         for (int col = 0; col < numColumns; col++) {
 //            int tile = cpu.mem.peek(nameTableBaseAddress + (col + mx + ((row + my) * numColumns * 2))) & 0xff;
 //            int d1 = cpu.mem.peek_char(charBaseAddress + (tile * 16) + yOffs);
 //            int d2 = cpu.mem.peek_char(charBaseAddress + (tile * 16) + yOffs + 8);
 //
+            int attributePalette = getAttributePalette(col, row);
+            loadBGPalette(attributePalette);
             int tile = ppuRead(nameTableBaseAddress + (col + mx + ((row + my) * numColumns))) & 0xff;
             int d1 = ppuRead(charBaseAddress + (tile * 16) + yOffs);
             int d2 = ppuRead(charBaseAddress + (tile * 16) + yOffs + 8);
@@ -317,6 +340,45 @@ int oamAddress=0;
         }
 
     }
+
+    public int getAttributePalette(int col, int row) {
+        int x = col >> 2;
+        int y = row >> 2;
+        int nameTableBaseAddress = getBaseNametable();
+        int attributeOffset = 0x3C0 + x + (y * 8);
+        int data = ppuRead(nameTableBaseAddress + attributeOffset);
+        int pal;
+
+        boolean top = (row>>1)%2==0;
+        boolean left = (col>>1)%2==0;
+
+        if (top) {
+            if (left) {
+                pal = (data) & 0b11; // TOP LEFT
+
+            } else {
+                pal = (data >> 2) & 0b11; // TOP RIGHT
+            }
+        } else {
+            if (left) {
+                pal = (data >> 4) & 0b11; // LOW LEFT
+            } else {
+                pal = (data >> 6) & 0b11; // LOW RIGHT
+            }
+        }
+
+        return pal;
+    }
+
+    public void loadBGPalette(int p) {
+        int pUniversalBg = 0x3F00;
+        int pIndex = 0x3f01 + ((p & 0b111) * 4);
+        bgPalette[0] = NESPalette.palette[ppuRead(pUniversalBg)];
+        bgPalette[1] = NESPalette.palette[ppuRead(pIndex)];
+        bgPalette[2] = NESPalette.palette[ppuRead(pIndex+1)];
+        bgPalette[3] = NESPalette.palette[ppuRead(pIndex+2)];
+    }
+
 
     public void renderTileRow(BasicDisplay bd, int x, int y, int d1, int d2, int yOffset) {
 
@@ -327,7 +389,7 @@ int oamAddress=0;
             if ((d1 & bit) > 0) val |= 0b01;
             if ((d2 & bit) > 0) val |= 0b10;
 
-            bd.setDrawColor(tempCols[val]);
+            bd.setDrawColor(bgPalette[val]);
             bd.drawFilledRect((x + p) * scale, (y + yOffset) * scale, scale, scale);
         }
     }
@@ -338,5 +400,13 @@ int oamAddress=0;
             return true;
         }
         return false;
+    }
+
+    public void renderDebugOAM() {
+        bd.setDrawColor(Color.cyan);
+        for (int i = 0; i < 64; i++) {
+            OAM oam = oamTable[i];
+            bd.drawRect(oam.xPos * 2, oam.yPos * 2, 8 * 2, 8 * 2);
+        }
     }
 }

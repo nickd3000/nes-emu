@@ -48,6 +48,10 @@ public class MEM {
                     rig.io.controllerSnapshotState[0] = rig.io.controllerState[0];
                     rig.io.controllerSnapshotState[1] = rig.io.controllerState[1];
                 }
+            } else if (addr == 0x4014) {
+                rig.dma.dmaActive=true;
+                rig.dma.dmaAddr=0;
+                rig.dma.dmaPage=val;
             }
         }
 

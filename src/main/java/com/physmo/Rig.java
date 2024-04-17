@@ -15,10 +15,11 @@ public class Rig {
 //	CIA2 cia2 = null;
     IO io = null;
     PPU ppu;
+    DMA dma;
 
 
     public Rig(BasicDisplay basicDisplay) {
-        C64Palette.init();
+        NESPalette.init();
 
         this.basicDisplay = basicDisplay;
 
@@ -29,6 +30,7 @@ public class Rig {
         io = new IO(cpu, this);
         mem = new MEM(cpu, this);
         ppu = new PPU(basicDisplay, cpu, this);
+        dma = new DMA(ppu, mem);
         cpu.attachHardware(mem, ppu);
 
 //		if (cpu.unitTest == false)
@@ -61,9 +63,13 @@ public class Rig {
                     io.checkKeyboard(basicDisplay);
                 }
 
-                // Don't tick other components if unit test is active.
-                cpu.tick2();
                 ppu.tick();
+
+                if (dma.dmaActive) {
+                    dma.doNextDmaTransferCycle(tickCount);
+                } else {
+                    cpu.tick2();
+                }
 
                 tickCount++;
             }
