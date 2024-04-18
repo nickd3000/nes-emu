@@ -44,6 +44,8 @@ public class PPU {
     boolean spriteZeroHit = false;
     int oamAddress = 0;
 
+    boolean showBoundingBoxes = false;
+
     public PPU(BasicDisplay bd, CPU6502 cpu, Rig rig) {
         this.bd = bd;
         this.cpu = cpu;
@@ -67,8 +69,11 @@ public class PPU {
 
         if (raster == 0) vBlankActive = false;
 
+        checkSprite0();
+
         if (raster >= 0 && raster < 240) {
             renderBgRow(bd, raster);
+            renderSpriteRow(bd, raster);
         }
 
         if (raster == 241) {
@@ -85,11 +90,12 @@ public class PPU {
         if (raster == 261) {
             raster = 0;
             vBlankActive = false;
-            renderDebugOAM();
+            if (showBoundingBoxes) renderDebugOAM();
             bd.repaint();
+            spriteZeroHit = false;
         }
 
-        if (Math.random() < 0.1) spriteZeroHit = true;
+//        if (Math.random() < 0.1) spriteZeroHit = true;
 
         raster++;
         nextRasterAt += 341;
@@ -313,17 +319,17 @@ public class PPU {
         int row = scanline / 8;
         int yOffs = scanline % 8;
         int nameTableBaseAddress = getBaseNametable();//0x2000; //
-        int charBaseAddress = 0x1000;
+        int charBaseAddress = 0x0000;
 
-        if ((PPUCTRL & 0b1000) > 0) charBaseAddress = 0;//0x1000;
+        if ((PPUCTRL & 0b10000) > 0) charBaseAddress = 0x1000;
 
         int mx = bd.getMouseButtonLeft() ? bd.getMouseX() * 8 : 0;
         int my = bd.getMouseButtonLeft() ? bd.getMouseY() * 8 : 0;
 
         int scrollX = PPUSCROLL & 0xF;
         int scrollY = (PPUSCROLL >> 4) & 0xF;
-//        mx -= scrollCourseX * 8;
-//        my -= scrollCourseY * 8;
+        mx += scrollCourseX;// * 8;
+        my += scrollCourseY;// * 8;
 
         for (int col = 0; col < numColumns; col++) {
 //            int tile = cpu.mem.peek(nameTableBaseAddress + (col + mx + ((row + my) * numColumns * 2))) & 0xff;
@@ -336,9 +342,56 @@ public class PPU {
             int d1 = ppuRead(charBaseAddress + (tile * 16) + yOffs);
             int d2 = ppuRead(charBaseAddress + (tile * 16) + yOffs + 8);
 //
-            renderTileRow(bd, col * 8, row * 8, d1, d2, scanline % 8);
+            renderTileRow(bd, col * 8, row * 8, d1, d2, scanline % 8, false, false);
         }
 
+    }
+
+    public void renderSpriteRow(BasicDisplay bd, int scanline) {
+        OAM oam;
+
+        int charBaseAddress = 0x0;
+        if ((PPUCTRL & 0b1000) > 0) charBaseAddress = 0x1000;
+
+        for (int i = 0; i < 64; i++) {
+            oam = oamTable[i];
+            if (oam.yPos + 7 < scanline || oam.yPos > scanline) continue;
+
+            int yOffs = scanline - oam.yPos;
+
+            // Handle y-flipped sprite
+            int dataOffset = ((oam.attributes & 0b10000000) == 0) ? yOffs : 7-yOffs;
+
+            int d1 = ppuRead(charBaseAddress + (oam.tileIndex * 16) + dataOffset);
+            int d2 = ppuRead(charBaseAddress + (oam.tileIndex * 16) + dataOffset + 8);
+            boolean flipH = (oam.attributes & 0b01000000) > 0;
+
+            loadSpritePalette(oam.attributes & 0b11);
+
+            //bd.drawRect(oam.xPos * 2, oam.yPos * 2, 8 * 2, 8 * 2);
+            renderTileRow(bd, oam.xPos, oam.yPos, d1, d2, yOffs, true, flipH);
+        }
+    }
+
+    public void renderTileRow(BasicDisplay bd, int x, int y, int d1, int d2, int yOffset, boolean transparent, boolean flipH) {
+
+        int bit;
+        for (int p = 0; p < 8; p++) {
+
+            if (!flipH)
+                bit = 0b10000000 >> p;
+            else
+                bit = 0b10000000 >> (7 - p);
+
+            int val = 0;
+            if ((d1 & bit) > 0) val |= 0b01;
+            if ((d2 & bit) > 0) val |= 0b10;
+
+            if (!(transparent && val == 0)) {
+                bd.setDrawColor(bgPalette[val]);
+                bd.drawFilledRect((x + p) * scale, (y + yOffset) * scale, scale, scale);
+            }
+        }
     }
 
     public int getAttributePalette(int col, int row) {
@@ -349,8 +402,8 @@ public class PPU {
         int data = ppuRead(nameTableBaseAddress + attributeOffset);
         int pal;
 
-        boolean top = (row>>1)%2==0;
-        boolean left = (col>>1)%2==0;
+        boolean top = (row >> 1) % 2 == 0;
+        boolean left = (col >> 1) % 2 == 0;
 
         if (top) {
             if (left) {
@@ -375,24 +428,19 @@ public class PPU {
         int pIndex = 0x3f01 + ((p & 0b111) * 4);
         bgPalette[0] = NESPalette.palette[ppuRead(pUniversalBg)];
         bgPalette[1] = NESPalette.palette[ppuRead(pIndex)];
-        bgPalette[2] = NESPalette.palette[ppuRead(pIndex+1)];
-        bgPalette[3] = NESPalette.palette[ppuRead(pIndex+2)];
+        bgPalette[2] = NESPalette.palette[ppuRead(pIndex + 1)];
+        bgPalette[3] = NESPalette.palette[ppuRead(pIndex + 2)];
     }
 
-
-    public void renderTileRow(BasicDisplay bd, int x, int y, int d1, int d2, int yOffset) {
-
-        for (int p = 0; p < 8; p++) {
-
-            int bit = 0b10000000 >> p;
-            int val = 0;
-            if ((d1 & bit) > 0) val |= 0b01;
-            if ((d2 & bit) > 0) val |= 0b10;
-
-            bd.setDrawColor(bgPalette[val]);
-            bd.drawFilledRect((x + p) * scale, (y + yOffset) * scale, scale, scale);
-        }
+    public void loadSpritePalette(int p) {
+        int pUniversalBg = 0x3F00;
+        int pIndex = 0x3f11 + ((p & 0b111) * 4);
+        bgPalette[0] = NESPalette.palette[ppuRead(pUniversalBg)];
+        bgPalette[1] = NESPalette.palette[ppuRead(pIndex)];
+        bgPalette[2] = NESPalette.palette[ppuRead(pIndex + 1)];
+        bgPalette[3] = NESPalette.palette[ppuRead(pIndex + 2)];
     }
+
 
     public boolean getNmi() {
         if (nmi) {
@@ -402,11 +450,23 @@ public class PPU {
         return false;
     }
 
+    public void checkSprite0() {
+
+        if (oamTable[0].yPos == raster) spriteZeroHit = true;
+
+    }
+
     public void renderDebugOAM() {
         bd.setDrawColor(Color.cyan);
+        OAM oam;
         for (int i = 0; i < 64; i++) {
-            OAM oam = oamTable[i];
+            oam = oamTable[i];
             bd.drawRect(oam.xPos * 2, oam.yPos * 2, 8 * 2, 8 * 2);
         }
+
+        // Draw sprite zero again since it's special.
+        bd.setDrawColor(Color.red);
+        oam = oamTable[0];
+        bd.drawRect((oam.xPos * 2) + 1, (oam.yPos * 2) + 1, 8 * 2, 8 * 2);
     }
 }
