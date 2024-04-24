@@ -47,6 +47,7 @@ public class CPU6502 {
     String dbgInstructionName;
     String dbgString;
     boolean jam=false;
+    boolean disableDecimalMode = true; // Disable this because it's not available on the NES
 
     public void attachHardware(MEM mem, PPU ppu) {
         this.mem = mem;
@@ -594,10 +595,12 @@ public class CPU6502 {
         return val & 0xff;
     }
 
+
+
     private int addWithCarry(int a, int v) {
         int t;
 
-        if ((FL & FLAG_DECIMAL_MODE) > 0) {
+        if (!disableDecimalMode && (FL & FLAG_DECIMAL_MODE) > 0) {
             t = (a & 0xf) + (v & 0xf) + ((FL & FLAG_CARRY) > 0 ? 1 : 0);
             if (t > 0x09)
                 t += 0x6;
@@ -620,7 +623,7 @@ public class CPU6502 {
 
     public int subtractWithCarry(int a, int v) {
         int t;
-        if ((FL & FLAG_DECIMAL_MODE) > 0) {
+        if (!disableDecimalMode && (FL & FLAG_DECIMAL_MODE) > 0) {
             // System.out.println("decimal mode");
 
             t = (a & 0xf) - (v & 0xf) - ((FL & FLAG_CARRY) > 0 ? 0 : 1);

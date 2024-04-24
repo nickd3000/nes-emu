@@ -5,6 +5,7 @@ public class DMA {
     public int dmaPage = 0;
     public int dmaAddr = 0;
     public int dmaData = 0;
+    public int dmaDelay = 0;
     PPU ppu;
     MEM mem;
 
@@ -13,13 +14,15 @@ public class DMA {
         this.mem = mem;
     }
 
-    public void doNextDmaTransferCycle(int tickNumber) {
+    public void doNextDmaTransferCycle(long tickNumber) {
+        if (--dmaDelay>0) return;
 
-        if (tickNumber%2==0) {
+        if ((tickNumber&1)==0) {
             dmaData = mem.peek(dmaPage<<8 | dmaAddr);
         } else {
             switch (dmaAddr&0x03) {
                 case 0:
+                    //if (dmaData==0) dmaData=1;
                     ppu.oamTable[dmaAddr>>2].yPos = dmaData;
                     break;
                 case 1:
@@ -33,7 +36,10 @@ public class DMA {
                     break;
             }
             dmaAddr=(dmaAddr+1)&0xFF;
-            if (dmaAddr==0) dmaActive=false;
+            if (dmaAddr==0) {
+                dmaActive = false;
+                dmaDelay = 3;
+            }
         }
 
     }

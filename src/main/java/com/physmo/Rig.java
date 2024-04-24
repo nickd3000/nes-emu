@@ -48,37 +48,36 @@ public class Rig {
         cpu.reset();
     }
 
-    public void runForCycles(int runFor) {
+    public void runForCycles(long runFor) {
         //cpu.debugOutput = true;
         int displayLines = 500; //
         int instructionsPerScanLine = 160;
-        int tickCount = 0;
+        long tickCount = 0;
 
 
         for (int i = 0; i < runFor + displayLines; i++) {
 
-            for (int ii = 0; ii < instructionsPerScanLine; ii++) {
 
-                if (tickCount % 50 == 0) {
-                    io.checkKeyboard(basicDisplay);
-                }
-
-                ppu.tick();
-
-                if (dma.dmaActive) {
-                    dma.doNextDmaTransferCycle(tickCount);
-                } else {
-                    cpu.tick2();
-                }
-
-                tickCount++;
+            if (tickCount % 50 == 0) {
+                io.checkKeyboard(basicDisplay);
             }
 
-            if (cpu.firstUnimplimentedInstructionIndex != -1) {
-                System.out.println("### First unimplimented instruction occured at call number: "
-                        + cpu.firstUnimplimentedInstructionIndex);
-                break;
+            ppu.tick();
+
+            if (dma.dmaActive) {
+                dma.doNextDmaTransferCycle(tickCount);
+            } else {
+                cpu.tick2();
             }
+
+            tickCount++;
+
+
+//            if (cpu.firstUnimplimentedInstructionIndex != -1) {
+//                System.out.println("### First unimplimented instruction occured at call number: "
+//                        + cpu.firstUnimplimentedInstructionIndex);
+//                break;
+//            }
 
         }
     }

@@ -2,6 +2,8 @@ package com.physmo;
 
 import com.physmo.mappers.Mapper;
 import com.physmo.mappers.Mapper000;
+import com.physmo.mappers.Mapper001;
+import com.physmo.mappers.Mapper002;
 import com.physmo.mappers.Mapper003;
 
 public class NESCart {
@@ -40,6 +42,12 @@ public class NESCart {
         if (id==0) {
             mapper = new Mapper000();
         }
+        if (id==1) {
+            mapper = new Mapper001();
+        }
+        if (id==2) {
+            mapper = new Mapper002();
+        }
         if (id==3) {
             mapper = new Mapper003();
         }
@@ -65,6 +73,8 @@ public class NESCart {
         if ((flags6&0x01)>0) mirrorMode=1;
         else mirrorMode=0;
 
+        if ((flags6&0x04)>0) System.out.println("PADDING?");
+
         // Detect NES2 format file.
         if ((flags7&0x0c)==0x08) NES2Format=true;
 
@@ -78,7 +88,10 @@ public class NESCart {
         System.out.println("prgRomSize="+prgRomSize);
         System.out.println("chrRomSize="+chrRomSize);
 
-        System.out.println("flags6="+Utils.toBinary(flags6));
+        System.out.println("prgRomChunks="+prgRomChunks);
+        System.out.println("chrRomChunks="+chrRomChunks);
+
+        System.out.println("flags6="+Utils.toBinary(flags6)+" "+((((flags6&0x01)>0))?"VERTICAL":"HORIZONTAL"));
         System.out.println("flags7="+Utils.toBinary(flags7));
         System.out.println("flags8="+Utils.toBinary(flags8));
         System.out.println("flags9="+Utils.toBinary(flags9));
