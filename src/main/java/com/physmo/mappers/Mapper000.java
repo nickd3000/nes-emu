@@ -22,7 +22,8 @@ public class Mapper000 implements Mapper {
         if (addr>=0x8000 && addr<=0xFFFF) {
             int a = addr;
             if (nesCart.prgRomChunks==1) a &= 0x3FFF;
-            if (nesCart.prgRomChunks==2) a &= 0x7FFF;
+            else if (nesCart.prgRomChunks==2) a &= 0x7FFF;
+            else System.out.println("PRG chunk number not supported");
             outValue.value = nesCart.data[nesCart.prgRomOffset+a];
             return true;
         }
@@ -38,7 +39,7 @@ public class Mapper000 implements Mapper {
     @Override
     public boolean ppuRead(int addr, OutValue outValue) {
 
-        if (addr<0x1FFF) {
+        if (addr<=0x1FFF) {
             outValue.value = nesCart.data[nesCart.chrRomOffset+addr];
             return true;
         }

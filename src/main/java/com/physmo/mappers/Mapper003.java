@@ -5,14 +5,11 @@ import com.physmo.NESCart;
 import com.physmo.OutValue;
 import com.physmo.Rig;
 
-import static com.physmo.NESCart.KB16;
-import static com.physmo.NESCart.KB8;
-
 public class Mapper003 implements Mapper {
 
     Rig rig;
     NESCart nesCart;
-    int bankSelect =0;
+    int bankSelect = 0;
 
     @Override
     public void attachRig(Rig rig, NESCart nesCart) {
@@ -22,12 +19,11 @@ public class Mapper003 implements Mapper {
 
     @Override
     public boolean cpuRead(int addr, OutValue outValue) {
-        if (addr>=0x8000 && addr<=0xBFFF) {
-            outValue.value = nesCart.data[nesCart.prgRomOffset+(addr-0x8000)];
-            return true;
-        }
-        if (addr>=0xC000 && addr<=0xFFFF) {
-            outValue.value = nesCart.data[nesCart.prgRomOffset+(addr-0xC000)];
+        if (addr >= 0x8000 && addr <= 0xFFFF) {
+            int a = addr;
+            if (nesCart.prgRomChunks == 1) a &= 0x3FFF;
+            if (nesCart.prgRomChunks == 2) a &= 0x7FFF;
+            outValue.value = nesCart.data[nesCart.prgRomOffset + a];
             return true;
         }
 
@@ -36,8 +32,9 @@ public class Mapper003 implements Mapper {
 
     @Override
     public boolean cpuWrite(int addr, int val) {
-        if (addr>=0x8000 && addr<=0xFFFF) {
-            bankSelect = val &0b0011;
+        if (addr >= 0x8000 && addr <= 0xFFFF) {
+            bankSelect = val & 0b11;
+            //System.out.println("setting bank to " + bankSelect);
             return true;
         }
         return false;
@@ -46,8 +43,8 @@ public class Mapper003 implements Mapper {
     @Override
     public boolean ppuRead(int addr, OutValue outValue) {
 
-        if (addr<0x1FFF) {
-            outValue.value = nesCart.data[nesCart.chrRomOffset+addr+(bankSelect*0x2000)];
+        if (addr <= 0x1FFF) {
+            outValue.value = nesCart.data[nesCart.chrRomOffset + addr + (bankSelect * 0x2000)];
             return true;
         }
 
