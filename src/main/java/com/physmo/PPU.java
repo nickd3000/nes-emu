@@ -306,7 +306,7 @@ public class PPU {
                 if (addr == 0x0014) addr = 0x0004;
                 if (addr == 0x0018) addr = 0x0008;
                 if (addr == 0x001C) addr = 0x000C;
-                outValue.value = paletteRam[addr];
+                outValue.value = paletteRam[addr] & 0x3F;
             }
 
         }
@@ -315,7 +315,8 @@ public class PPU {
     }
 
     public int getAddressIncrementSize() {
-        if ((PPUCTRL & 0x0000_0100) == 0) return 1;
+        // Donkey kong issue was caused by the below value being wrong.
+        if ((PPUCTRL & 0b0000_0100) == 0) return 1;
         return 32;
     }
 
@@ -363,7 +364,11 @@ public class PPU {
             if ((yOffs + fy) > 7) combinedY++;
 
             if (combinedX >= 32) {
-                nameTableBaseAddress += 0x400;
+                if ((PPUCTRL & 0b01) > 0) {
+                    nameTableBaseAddress -= 0x400;
+                } else {
+                    nameTableBaseAddress += 0x400;
+                }
                 combinedX %= 32;
             }
             if (combinedY >= 30) {

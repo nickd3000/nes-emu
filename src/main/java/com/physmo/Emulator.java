@@ -26,7 +26,7 @@ public class Emulator {
         // Mapper 000
 //        return "mario bros.nes";
 //        return "super mario bros.nes";
-//        return "donkey kong.nes";
+        return "donkey kong.nes";
 //        return "balloon fight.nes";
 //        return "pac-man.nes";
 //        return "bomberman.nes";
@@ -52,7 +52,7 @@ public class Emulator {
 //        return "arkanoid.nes";
 //        return "gradius.nes";
 //        return "q*bert.nes";
-        return "BumpNJump.nes";
+//        return "BumpNJump.nes";
 //        return "Castlequest.nes";
 //        return "MightyBombJack.nes";
 //            return "SolomonsKey.nes";
