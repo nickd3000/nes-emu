@@ -139,11 +139,11 @@ public class PPU {
                 break;
             case 0x05:
                 if (wRegister) {
-                    scrollCourseY = (val&0xFF) >> 3;
+                    scrollCourseY = (val & 0xFF) >> 3;
                     scrollFineY = val & 0x07;
                     wRegister = false;
                 } else {
-                    scrollCourseX = (val&0xFF) >> 3;
+                    scrollCourseX = (val & 0xFF) >> 3;
                     scrollFineX = val & 0x07;
                     wRegister = true;
                 }
@@ -341,8 +341,8 @@ public class PPU {
         int cy = scrollCourseY;
         int fx = scrollFineX;
         int fy = scrollFineY;
-        int sy = (cy*8)|fy;
-        int sx = (cx*8)|fx;
+        int sy = (cy * 8) | fy;
+        int sx = (cx * 8) | fx;
 
         int numColumns = 32;
         int row = (scanline) / 8;
@@ -354,29 +354,36 @@ public class PPU {
 
 
         for (int col = 0; col < numColumns; col++) {
-//            int tile = cpu.mem.peek(nameTableBaseAddress + (col + mx + ((row + my) * numColumns * 2))) & 0xff;
-//            int d1 = cpu.mem.peek_char(charBaseAddress + (tile * 16) + yOffs);
-//            int d2 = cpu.mem.peek_char(charBaseAddress + (tile * 16) + yOffs + 8);
-//
-            int attributePalette = getAttributePalette(col + cx, row );
-            loadBGPalette(attributePalette);
 
             nameTableBaseAddress = getBaseNametable(); //0x2000;
 
-            int combinedX = col+cx;
-            if ((PPUCTRL&0b01)>0) combinedX+=256/8;
-            int combinedY = row+cy;
-            if ((PPUCTRL&0b10)>0) combinedY+=240/8;
-            if (combinedX>=32) {
-                nameTableBaseAddress+=0x400;
-                combinedX&=0b00011111;
+            int combinedX = col + cx;
+            int combinedY = row + cy;
+
+            if ((yOffs + fy) > 7) combinedY++;
+
+            if (combinedX >= 32) {
+                nameTableBaseAddress += 0x400;
+                combinedX %= 32;
+            }
+            if (combinedY >= 30) {
+                if ((PPUCTRL & 0b10) > 0) {
+                    nameTableBaseAddress -= 0x800;
+                } else {
+                    nameTableBaseAddress += 0x800;
+                }
+                combinedY %= 30;
             }
 
-            int tile = ppuRead(nameTableBaseAddress + (combinedX + ((combinedY ) * numColumns))) & 0xff;
-            int d1 = ppuRead(charBaseAddress + (tile * 16) + yOffs);
-            int d2 = ppuRead(charBaseAddress + (tile * 16) + yOffs + 8);
+
+            int attributePalette = getAttributePalette(nameTableBaseAddress, combinedX % 32, combinedY % 30);
+            loadBGPalette(attributePalette);
+
+            int tile = ppuRead(nameTableBaseAddress + (combinedX + ((combinedY) * numColumns))) & 0xff;
+            int d1 = ppuRead(charBaseAddress + (tile * 16) + ((yOffs + fy) % 8));
+            int d2 = ppuRead(charBaseAddress + (tile * 16) + ((yOffs + fy) % 8) + 8);
 //
-            renderTileRow(bd, (col * 8) -fx, (row * 8) + (scanline) % 8, d1, d2, (scanline) % 8, false, false);
+            renderTileRow(bd, (col * 8) - fx, (row * 8) + (scanline) % 8, d1, d2, 0, false, false);
         }
 
     }
@@ -405,7 +412,7 @@ public class PPU {
             loadSpritePalette(oam.attributes & 0b11);
 
             //bd.drawRect(oam.xPos * 2, oam.yPos * 2, 8 * 2, 8 * 2);
-            renderTileRow(bd, oam.xPos, oam.yPos+yOffs, d1, d2, yOffs, true, flipH);
+            renderTileRow(bd, oam.xPos, oam.yPos + yOffs, d1, d2, yOffs, true, flipH);
         }
 
         if (spriteCount > 6) spriteOverflow = true;
@@ -451,7 +458,7 @@ public class PPU {
             loadSpritePalette(oam.attributes & 0b11);
 
             //bd.drawRect(oam.xPos * 2, oam.yPos * 2, 8 * 2, 8 * 2);
-            renderTileRow(bd, oam.xPos, oam.yPos + (secondSprite * 8) + yOffs & 0b111, d1, d2, yOffs & 0b111, true, flipH);
+            renderTileRow(bd, oam.xPos, oam.yPos + (secondSprite * 8) + yOffs, d1, d2, yOffs & 0b111, true, flipH);
         }
     }
 
@@ -476,10 +483,10 @@ public class PPU {
         }
     }
 
-    public int getAttributePalette(int col, int row) {
+    public int getAttributePalette(int nameTableBaseAddress, int col, int row) {
         int x = col >> 2;
         int y = row >> 2;
-        int nameTableBaseAddress = getBaseNametable();
+        //int nameTableBaseAddress = getBaseNametable();
         int attributeOffset = 0x3C0 + x + (y * 8);
         int data = ppuRead(nameTableBaseAddress + attributeOffset);
         int pal;
@@ -490,7 +497,6 @@ public class PPU {
         if (top) {
             if (left) {
                 pal = (data) & 0b11; // TOP LEFT
-
             } else {
                 pal = (data >> 2) & 0b11; // TOP RIGHT
             }
