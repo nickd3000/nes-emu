@@ -15,9 +15,15 @@ public class DMA {
     }
 
     public void doNextDmaTransferCycle(long tickNumber) {
-        if (--dmaDelay>0) return;
 
-        if ((tickNumber&1)==0) {
+        if (dmaDelay>0) {
+            if ((tickNumber%2)==1) {
+                dmaDelay=0;
+            }
+            return;
+        }
+
+        if ((tickNumber%2)==0) {
             dmaData = mem.peek(dmaPage<<8 | dmaAddr);
         } else {
             switch (dmaAddr&0x03) {
