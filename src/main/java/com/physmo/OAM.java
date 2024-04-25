@@ -14,18 +14,20 @@ public class OAM {
     }
 
     public boolean isFlippedH() {
-        if ((attributes&0b01000000)>0) return true;
-        return false;
+        return (attributes & 0b01000000) > 0;
     }
 
 
     public boolean isFlippedV() {
-        if ((attributes&0b10000000)>0) return true;
-        return false;
+        return (attributes & 0b10000000) > 0;
     }
 
     public int getPalette() {
         return (attributes&0b11)+4;
     }
 
+    @Override
+    public String toString() {
+        return "x:"+xPos+" y:"+yPos+" index:"+tileIndex;
+    }
 }

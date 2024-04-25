@@ -32,7 +32,9 @@ public class Emulator {
 //        return "bomberman.nes";
 //        return "golf.nes";
 //        return "ice climber.nes";
-        return "ice hockey.nes";
+//        return "ice hockey.nes";
+//        return "xevious.nes";
+
 
         // Mapper 001
 //        return "tetris.nes";
@@ -50,7 +52,7 @@ public class Emulator {
 //        return "arkanoid.nes";
 //        return "gradius.nes";
 //        return "q*bert.nes";
-//        return "BumpNJump.nes";
+        return "BumpNJump.nes";
 //        return "Castlequest.nes";
 //        return "MightyBombJack.nes";
 //            return "SolomonsKey.nes";
@@ -59,6 +61,9 @@ public class Emulator {
 //        return "MysteryQuest.nes"; // 64
 
 //        return "MegaMan.nes"; // 066
+
+//        return "1942.nes"; // 064
+
     }
 
 }
