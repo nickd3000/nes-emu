@@ -5,6 +5,7 @@ import com.physmo.mappers.Mapper000;
 import com.physmo.mappers.Mapper001;
 import com.physmo.mappers.Mapper002;
 import com.physmo.mappers.Mapper003;
+import com.physmo.mappers.Mapper004;
 
 public class NESCart {
 
@@ -50,6 +51,9 @@ public class NESCart {
         }
         if (id==3) {
             mapper = new Mapper003();
+        }
+        if (id==4) {
+            mapper = new Mapper004();
         }
     }
 

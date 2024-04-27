@@ -55,7 +55,8 @@ public class Rig {
         long tickCount = 0;
 
 
-        for (int i = 0; i < runFor + displayLines; i++) {
+        //for (int i = 0; i < runFor + displayLines ; i++) {
+        for (;;) {
 
 
             if (tickCount % 50 == 0) {

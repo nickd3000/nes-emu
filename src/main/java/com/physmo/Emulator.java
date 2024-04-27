@@ -23,10 +23,10 @@ public class Emulator {
     }
 
     public static String getGame() {
-        // Mapper 000
+        // Mapper 000 (260 games)
 //        return "mario bros.nes";
 //        return "super mario bros.nes";
-        return "donkey kong.nes";
+//        return "donkey kong.nes";
 //        return "balloon fight.nes";
 //        return "pac-man.nes";
 //        return "bomberman.nes";
@@ -34,30 +34,43 @@ public class Emulator {
 //        return "ice climber.nes";
 //        return "ice hockey.nes";
 //        return "xevious.nes";
+//        return "pinball.nes";
+//        return "othello.nes";
+
+        // Mapper 001 (481 games)
+//      return "tetris.nes"; // PRG=2 CHR=2 HORIZONTAL
+//      return "metroid.nes"; // PRG=8 CHR=0 VERTICAL
+//      return "megaman2.nes"; // PRG=16 CHR=0 VERTICAL
+//        return "DrMario.nes"; // PRG=2 CHR=4 HORIZONTAL
+//        return "UltimaExodus.nes"; // PRG=16 CHR=0 VERTICAL
+        return "BubbleBobble.nes"; // PRG=8 CHR=4 VERTICAL
 
 
-        // Mapper 001
-//        return "tetris.nes";
-
-        // Mapper 002
+        // Mapper 002 (200 g)
 //        return "Castlevania.nes";
 //        return "RainbowIslands.nes";
 //        return "SuperPitfall.nes";
 //        return  "Ikari Warriors.nes";
 //        return "Life Force.nes";
 //        return "TotalRecall.nes"; // 002
+//        return "Prince of Persia.nes";
+//        return "heroquest.nes";
 
+        // Mapper 003 (145 g)
+//        return "arkanoid.nes"; // Good
+//        return "gradius.nes"; // Scrolling and sprite flickering
+//        return "q*bert.nes"; // Good
+//        return "BumpNJump.nes"; // Good
+//        return "Castlequest.nes"; // Good
+//        return "MightyBombJack.nes"; // Good
+//        return "SolomonsKey.nes";
 
-        // Mapper 003
-//        return "arkanoid.nes";
-//        return "gradius.nes";
-//        return "q*bert.nes";
-//        return "BumpNJump.nes";
-//        return "Castlequest.nes";
-//        return "MightyBombJack.nes";
-//            return "SolomonsKey.nes";
-
+        // Mapper 004 (569 g)
 //        return "BuraiFighter.nes"; // 004
+//        return "Batman Returns.nes"; // 004
+//        return "YoshisCookie.nes"; // 004
+//        return "GauntletII.nes";
+
 //        return "MysteryQuest.nes"; // 64
 
 //        return "MegaMan.nes"; // 066

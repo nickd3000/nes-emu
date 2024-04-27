@@ -45,7 +45,7 @@ public class PPU {
     boolean spriteOverflow = false;
     boolean spriteZeroHit = false;
 
-    boolean showBoundingBoxes = true;
+    boolean showBoundingBoxes = false;
 
     public PPU(BasicDisplay bd, CPU6502 cpu, Rig rig) {
         this.bd = bd;
