@@ -43,8 +43,9 @@ public class Emulator {
 //      return "megaman2.nes"; // PRG=16 CHR=0 VERTICAL
 //        return "DrMario.nes"; // PRG=2 CHR=4 HORIZONTAL
 //        return "UltimaExodus.nes"; // PRG=16 CHR=0 VERTICAL
-        return "BubbleBobble.nes"; // PRG=8 CHR=4 VERTICAL
-
+//        return "BubbleBobble.nes"; // BAD PRG=8 CHR=4 VERTICAL
+        return "Boulderdash.nes"; // BAD PRG=2 CHR=4 HORIZONTAL
+//        return "BombermanII.nes"; // GOOD PRG=8 CHR=0 HORIZONTAL
 
         // Mapper 002 (200 g)
 //        return "Castlevania.nes";

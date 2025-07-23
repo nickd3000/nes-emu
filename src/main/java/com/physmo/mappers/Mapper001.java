@@ -101,11 +101,12 @@ public class Mapper001 implements Mapper {
         if (address == 0) {
             control = shiftRegister & 0x1F;
             switch (control & 0x03) {
-                case 0 -> mirrorMode = 3;
-                case 1 -> mirrorMode = 2;
-                case 2 -> mirrorMode = 1;
-                case 3 -> mirrorMode = 0;
+                case 0 -> mirrorMode = 0; // OS L
+                case 1 -> mirrorMode = 0; // OS H
+                case 2 -> mirrorMode = 1; // V
+                case 3 -> mirrorMode = 0; // H
             }
+            //System.out.println("Setting mirror mode to "+(control&0x03));
             nesCart.mirrorMode=mirrorMode;
         } else if (address == 1) { // 0xA000 - 0xBFFF
             if ((control & 0b10000) == 0b10000) //We change the lower half of the CHR Memory range
@@ -144,37 +145,26 @@ public class Mapper001 implements Mapper {
                 if ((control & 0b10000) == 0b10000) {
                     if (addr <= 0x0FFF) {
                         outValue.value = nesCart.data[nesCart.chrRomOffset + (this.charBankSelectLow4k * 0x1000) + (addr & 0x0FFF)];
-                        //mapped.value = (selected_CHR_bank_low_4K * 0x1000) + (addr & 0x0FFF);
                         return true;
                     } else {
                         outValue.value = nesCart.data[nesCart.chrRomOffset + (this.charBankSelectHigh4k * 0x1000) + (addr & 0x0FFF)];
                         return true;
-                        //mapped.value = (selected_CHR_bank_high_4K * 0x1000) + (addr & 0x0FFF);
                     }
                 } else {
                     outValue.value = nesCart.data[nesCart.chrRomOffset + (this.charBankSelect8k * 0x2000) + (addr & 0x1FFF)];
                     return true;
-                    //mapped.value = (selected_CHR_bank_8K * 0x2000) + (addr & 0x1FFF);
                 }
 
             }
-
-            //outValue.value = nesCart.data[nesCart.chrRomOffset + (addr & 0x0FFF) + (chrBank0 * 0x1000)];
-            //return true;
         }
-
-//        else if (addr <= 0x1FFF) {
-//            outValue.value = nesCart.data[nesCart.chrRomOffset + (addr & 0x0FFF) + (chrBank1 * 0x1000)];
-//            return true;
-//        }
 
         return false;
     }
 
     @Override
     public boolean ppuWrite(int addr, int val) {
-
-        return false;
+        if (nesCart.chrRomChunks == 0) return false;
+        return true;
     }
 
 }
